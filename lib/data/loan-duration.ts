@@ -2,6 +2,7 @@ import { asc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { devices, loanDurationRules, loans } from "@/lib/db/schema";
+import { isAuthenticated } from "@/lib/auth/guard";
 
 export const DEFAULT_LOAN_DURATION_RULES = [
   { category: "Standard", durationDays: 14 },
@@ -26,6 +27,11 @@ export function getDurationDays(rules: Pick<LoanDurationRule, "category" | "dura
 }
 
 export async function getLoanDurationRules() {
+  await isAuthenticated({ behavior: "error", permissions: { loan_settings: ["read"] } });
+  return getLoanDurationRulesUnchecked();
+}
+
+async function getLoanDurationRulesUnchecked() {
   await db.insert(loanDurationRules)
     .values(DEFAULT_LOAN_DURATION_RULES.map((rule) => rule))
     .onConflictDoNothing({ target: loanDurationRules.category });
@@ -33,7 +39,8 @@ export async function getLoanDurationRules() {
 }
 
 export async function backfillMissingLoanDueDates() {
-  const rules = await getLoanDurationRules();
+  await isAuthenticated({ behavior: "error", permissions: { inventory: ["read"] } });
+  const rules = await getLoanDurationRulesUnchecked();
   const missingDueDates = await db.select({ loanId: loans.id, borrowedAt: loans.borrowedAt, category: devices.category })
     .from(loans)
     .innerJoin(devices, eq(loans.deviceId, devices.id))

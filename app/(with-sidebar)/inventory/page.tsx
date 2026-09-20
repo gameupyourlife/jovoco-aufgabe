@@ -17,13 +17,11 @@ export default async function InventoryPage() {
   const session = await isAuthenticated({ behavior: "redirect" });
 
   try {
-    const [canViewAllInventory, canViewAllLoans, canCreateForOthers, canReturnAll] = await Promise.all([
-      hasPermission({ inventory: ["read_all"] }),
-      hasPermission({ loan: ["read_all"] }),
+    const [canCreateForOthers, canReturnAll] = await Promise.all([
       hasPermission({ loan: ["create_for_others"] }),
       hasPermission({ loan: ["return_all"] }),
     ]);
-    const inventory = await getInventoryData(session.user, canViewAllInventory, canViewAllLoans);
+    const inventory = await getInventoryData();
     const managedUsers = canCreateForOthers ? await getManagedUsers() : [];
     const myLoans = inventory.devices.flatMap((device) => device.loans
       .filter((loan) => loan.borrowerUserId === session.user.id && !loan.returnedAt)

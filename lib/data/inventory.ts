@@ -2,7 +2,7 @@ import { asc, desc, eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { devices, loans, reservations } from "@/lib/db/schema";
-import type { Session } from "@/lib/auth";
+import { hasPermission, isAuthenticated } from "@/lib/auth/guard";
 import { backfillMissingLoanDueDates } from "@/lib/data/loan-duration";
 
 export type Device = typeof devices.$inferSelect;
@@ -21,11 +21,12 @@ export type InventoryData = {
   availableCount: number;
 };
 
-export async function getInventoryData(
-  viewer: Session["user"],
-  canViewAllInventory: boolean,
-  canViewAllLoans: boolean,
-): Promise<InventoryData> {
+export async function getInventoryData(): Promise<InventoryData> {
+  const session = await isAuthenticated({ behavior: "error", permissions: { inventory: ["read"] } });
+  const [canViewAllInventory, canViewAllLoans] = await Promise.all([
+    hasPermission({ inventory: ["read_all"] }),
+    hasPermission({ loan: ["read_all"] }),
+  ]);
   await backfillMissingLoanDueDates();
   const [deviceRows, loanRows, reservationRows] = await Promise.all([
     db.select().from(devices).orderBy(asc(devices.name)),
@@ -35,7 +36,7 @@ export async function getInventoryData(
 
   const visibleLoans = canViewAllLoans
     ? loanRows
-    : loanRows.filter((loan) => loan.borrowerUserId === viewer.id);
+    : loanRows.filter((loan) => loan.borrowerUserId === session.user.id);
   const allLoansByDevice = new Map<number, Loan[]>();
   const visibleLoansByDevice = new Map<number, Loan[]>();
   const reservationsByDevice = new Map<number, number>();

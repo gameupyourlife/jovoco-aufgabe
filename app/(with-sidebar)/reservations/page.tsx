@@ -10,15 +10,14 @@ export const dynamic = "force-dynamic";
 
 export default async function ReservationsPage() {
   const session = await isAuthenticated({ behavior: "redirect" });
-  const [canViewAll, canCreateForOthers, canCancelAll, canPickupAll] = await Promise.all([
-    hasPermission({ reservation: ["read_all"] }),
+  const [canCreateForOthers, canCancelAll, canPickupAll] = await Promise.all([
     hasPermission({ reservation: ["create_for_others"] }),
     hasPermission({ reservation: ["cancel_all"] }),
     hasPermission({ reservation: ["pickup_all"] }),
   ]);
   const [devices, reservations, users] = await Promise.all([
     getReservableDevices(),
-    getReservations(session.user, canViewAll),
+    getReservations(),
     canCreateForOthers ? getManagedUsers() : Promise.resolve([]),
   ]);
 

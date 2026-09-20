@@ -107,7 +107,7 @@ export default async function Page({ searchParams }: PageProps) {
                   <CardTitle>Zeilenprotokoll</CardTitle>
                   <CardDescription>Quelle: {run.sourceFile}</CardDescription>
                   <CardAction>
-                  <Button variant="link" render={<a href={`/api/import-report?run=${run.id}`} />}>
+                  <Button variant="link" nativeButton={false} render={<a href={`/api/import-report?run=${run.id}`} />}>
                     <FileJson data-icon="inline-start" />
                     Als JSON öffnen
                   </Button>

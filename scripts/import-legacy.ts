@@ -5,7 +5,8 @@ import { resolve } from "node:path";
 
 import { eq, sql } from "drizzle-orm";
 import { db } from "../lib/db";
-import { devices, importRows, importRuns, legacyInventory, legacyLoans, loans } from "../lib/db/schema";
+import { devices, importRows, importRuns, legacyInventory, legacyLoans, loanDurationRules, loans } from "../lib/db/schema";
+import { calculateDueDate, DEFAULT_LOAN_DURATION_RULES, getDurationDays } from "../lib/data/loan-duration";
 
 type ImportStatus = "accepted" | "warning" | "rejected" | "skipped";
 type RowResult = { sourceTable: string; sourceRow: number; sourceKey: string; status: ImportStatus; message: string; rawData: Record<string, string | null> };
@@ -33,6 +34,7 @@ async function main() {
 
   await db.transaction(async (transaction) => {
     await transaction.execute(sql.raw(seedSql));
+    await transaction.insert(loanDurationRules).values(DEFAULT_LOAN_DURATION_RULES.map((rule) => rule)).onConflictDoNothing({ target: loanDurationRules.category });
     const [run] = await transaction.insert(importRuns).values({ sourceFile: "docs/altdaten_seed.sql" }).returning({ id: importRuns.id });
     const results: RowResult[] = [];
     const inventoryRows = await transaction.select().from(legacyInventory);
@@ -68,7 +70,7 @@ async function main() {
       results.push(rowResult("alt_inventar", index + 1, inventoryNumber, isFutureDate ? "warning" : "accepted", isFutureDate ? "Übernommen, aber Anschaffungsdatum liegt in der Zukunft." : "Gerät übernommen.", rawData));
     }
 
-    const importedDevices = await transaction.select({ id: devices.id, inventoryNumber: devices.inventoryNumber }).from(devices);
+    const importedDevices = await transaction.select({ id: devices.id, inventoryNumber: devices.inventoryNumber, category: devices.category }).from(devices);
     const deviceByInventoryNumber = new Map(importedDevices.map((device) => [device.inventoryNumber, device.id]));
     for (const [index, source] of loanRows.entries()) {
       const inventoryNumber = source.inventoryNumber?.trim() ?? "";
@@ -93,7 +95,9 @@ async function main() {
         results.push(rowResult("alt_ausleihen", index + 1, sourceKey, "rejected", "Rückgabe liegt vor der Ausleihe.", rawData));
         continue;
       }
-      const inserted = await transaction.insert(loans).values({ sourceKey, deviceId: deviceByInventoryNumber.get(inventoryNumber)!, borrower, borrowedAt, returnedAt }).onConflictDoNothing({ target: loans.sourceKey }).returning({ id: loans.id });
+      const [device] = importedDevices.filter((candidate) => candidate.inventoryNumber === inventoryNumber);
+      const durationRules = await transaction.select({ category: loanDurationRules.category, durationDays: loanDurationRules.durationDays }).from(loanDurationRules);
+      const inserted = await transaction.insert(loans).values({ sourceKey, deviceId: deviceByInventoryNumber.get(inventoryNumber)!, borrower, borrowedAt, dueAt: calculateDueDate(borrowedAt, getDurationDays(durationRules, device.category)), returnedAt }).onConflictDoNothing({ target: loans.sourceKey }).returning({ id: loans.id });
       results.push(rowResult("alt_ausleihen", index + 1, sourceKey, inserted.length ? "accepted" : "skipped", inserted.length ? "Ausleihe übernommen." : "Ausleihe ist bereits importiert.", rawData));
     }
 

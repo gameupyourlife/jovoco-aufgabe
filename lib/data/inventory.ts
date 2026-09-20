@@ -3,6 +3,7 @@ import { asc, desc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { devices, loans } from "@/lib/db/schema";
 import type { Session } from "@/lib/auth";
+import { backfillMissingLoanDueDates } from "@/lib/data/loan-duration";
 
 export type Device = typeof devices.$inferSelect;
 export type Loan = typeof loans.$inferSelect;
@@ -24,6 +25,7 @@ export async function getInventoryData(
   canViewAllInventory: boolean,
   canViewAllLoans: boolean,
 ): Promise<InventoryData> {
+  await backfillMissingLoanDueDates();
   const [deviceRows, loanRows] = await Promise.all([
     db.select().from(devices).orderBy(asc(devices.name)),
     db.select().from(loans).orderBy(desc(loans.borrowedAt)),

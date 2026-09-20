@@ -2,6 +2,7 @@ import { Archive, Boxes, CircleAlert, History, PackageCheck } from "lucide-react
 
 import { InventoryWorkspace } from "@/components/inventory-workspace";
 import { MyLoans } from "@/components/my-loans";
+import { OverdueLoans } from "@/components/overdue-loans";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,10 @@ export default async function InventoryPage() {
     const myLoans = inventory.devices.flatMap((device) => device.loans
       .filter((loan) => loan.borrowerUserId === session.user.id && !loan.returnedAt)
       .map((loan) => ({ ...loan, name: device.name, inventoryNumber: device.inventoryNumber, category: device.category })));
+    const today = new Date().toISOString().slice(0, 10);
+    const overdueLoans = inventory.devices.flatMap((device) => device.loans
+      .filter((loan) => !loan.returnedAt && loan.dueAt && loan.dueAt < today)
+      .map((loan) => ({ id: loan.id, borrower: loan.borrower, name: device.name, inventoryNumber: device.inventoryNumber, dueAt: loan.dueAt! })));
 
     return (
       <main className="min-h-svh bg-muted/30 px-4 py-8 sm:px-6">
@@ -49,6 +54,7 @@ export default async function InventoryPage() {
           </section>
 
           <MyLoans loans={myLoans} />
+          <OverdueLoans loans={overdueLoans} />
 
           {inventory.devices.length === 0 ? (
             <Card><Empty><EmptyHeader><EmptyMedia variant="icon"><Archive /></EmptyMedia><EmptyTitle>Noch keine Geräte</EmptyTitle><EmptyDescription>Importiere zunächst den Gerätebestand.</EmptyDescription></EmptyHeader></Empty></Card>

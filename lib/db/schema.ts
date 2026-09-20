@@ -48,7 +48,15 @@ export const loans = pgTable("loans", {
   borrowerUserId: text("borrower_user_id").references(() => user.id, { onDelete: "set null" }),
   borrower: text().notNull(),
   borrowedAt: date("borrowed_at").notNull(),
+  dueAt: date("due_at"),
   returnedAt: date("returned_at"),
+});
+
+export const loanDurationRules = pgTable("loan_duration_rules", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  category: text().unique().notNull(),
+  durationDays: integer("duration_days").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const importRows = pgTable("import_rows", {

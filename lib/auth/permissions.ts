@@ -5,6 +5,7 @@ export const statement = {
     ...defaultStatements,
     inventory: ["read", "read_all"],
     loan: ["create", "create_for_others", "read", "read_all", "return", "return_all"],
+    loan_settings: ["read", "manage"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -18,4 +19,5 @@ export const admin = ac.newRole({
     ...adminAc.statements, 
     inventory: ["read", "read_all"],
     loan: ["create", "create_for_others", "read", "read_all", "return", "return_all"],
+    loan_settings: ["read", "manage"],
 });

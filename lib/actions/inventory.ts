@@ -5,7 +5,8 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { hasPermission, isAuthenticated } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
-import { loans, user } from "@/lib/db/schema";
+import { devices, loanDurationRules, loans, user } from "@/lib/db/schema";
+import { calculateDueDate, getDurationDays } from "@/lib/data/loan-duration";
 import type { Device } from "@/lib/data/inventory";
 
 export type LoanActionResult =
@@ -49,6 +50,12 @@ export async function checkoutLoan(deviceId: number, borrower: string, borrowerU
       const device = deviceResult.rows[0];
       if (!device) throw new Error("Gerät wurde nicht gefunden.");
 
+      const durationRules = await transaction.select({ category: loanDurationRules.category, durationDays: loanDurationRules.durationDays })
+        .from(loanDurationRules);
+      const [deviceDetails] = await transaction.select({ category: devices.category }).from(devices).where(eq(devices.id, deviceId));
+      if (!deviceDetails) throw new Error("Gerät wurde nicht gefunden.");
+      const borrowedAt = new Date().toISOString().slice(0, 10);
+
       const openLoans = await transaction.select({ count: sql<number>`count(*)` })
         .from(loans)
         .where(and(eq(loans.deviceId, deviceId), isNull(loans.returnedAt)));
@@ -61,7 +68,8 @@ export async function checkoutLoan(deviceId: number, borrower: string, borrowerU
         deviceId,
         borrowerUserId: canCreateForOthers && borrowerUserId ? borrowerUserId : session.user.id,
         borrower: borrower.trim(),
-        borrowedAt: new Date().toISOString().slice(0, 10),
+        borrowedAt,
+        dueAt: calculateDueDate(borrowedAt, getDurationDays(durationRules, deviceDetails.category)),
       });
     });
 

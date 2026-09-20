@@ -1,7 +1,26 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { calculateDueDate, getDurationDays } from "../lib/data/loan-duration";
 import { canCheckoutLoan, canCreateReservation, canPickupReservation, intervalsOverlap, transitionReservationStatus } from "../lib/domain/reservations";
+
+const durationRules = [
+  { category: "Standard", durationDays: 14 },
+  { category: "Kamera", durationDays: 7 },
+  { category: "Mobilgerät", durationDays: 30 },
+];
+
+test("reservation end date uses the configured duration for the device category", () => {
+  const durationDays = getDurationDays(durationRules, "Kamera");
+
+  assert.equal(durationDays, 7);
+  assert.equal(calculateDueDate("2026-10-01", durationDays), "2026-10-08");
+});
+
+test("duration lookup normalizes category names and falls back to Standard", () => {
+  assert.equal(getDurationDays(durationRules, "  kamera "), 7);
+  assert.equal(getDurationDays(durationRules, "Unbekannt"), 14);
+});
 
 test("reservation intervals overlap when their boundary dates touch", () => {
   assert.equal(intervalsOverlap("2026-10-10", "2026-10-12", "2026-10-12", "2026-10-14"), true);

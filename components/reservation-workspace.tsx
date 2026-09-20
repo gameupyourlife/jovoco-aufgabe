@@ -27,17 +27,16 @@ export function ReservationWorkspace({ devices, reservations, users, currentUser
   const router = useRouter();
   const [deviceId, setDeviceId] = useState("");
   const [startsAt, setStartsAt] = useState("");
-  const [endsAt, setEndsAt] = useState("");
   const [reserverUserId, setReserverUserId] = useState(currentUserId);
   const [pending, setPending] = useState<number | "create" | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
 
   async function create() {
     setPending("create"); setMessage(null);
-    const result = await createReservation(Number(deviceId), startsAt, endsAt, canCreateForOthers ? reserverUserId : undefined);
+    const result = await createReservation(Number(deviceId), startsAt, canCreateForOthers ? reserverUserId : undefined);
     setPending(null);
     if (!result.success) { setMessage({ type: "error", text: result.error }); return; }
-    setMessage({ type: "success", text: "Reservierung angelegt." }); setDeviceId(""); setStartsAt(""); setEndsAt(""); router.refresh();
+    setMessage({ type: "success", text: "Reservierung angelegt." }); setDeviceId(""); setStartsAt(""); router.refresh();
   }
 
   async function runAction(action: "cancel" | "pickup", id: number) {
@@ -49,10 +48,9 @@ export function ReservationWorkspace({ devices, reservations, users, currentUser
 
   return <div className="flex flex-col gap-6">
     {message && <Alert variant={message.type === "error" ? "destructive" : "default"}><CalendarCheck /><AlertTitle>{message.type === "error" ? "Aktion nicht möglich" : "Gespeichert"}</AlertTitle><AlertDescription>{message.text}</AlertDescription></Alert>}
-    <Card><CardHeader><CardTitle>Gerät reservieren</CardTitle><CardDescription>Die Prüfung berücksichtigt offene Ausleihen und andere aktive Reservierungen im gewählten Zeitraum.</CardDescription></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <Card><CardHeader><CardTitle>Gerät reservieren</CardTitle><CardDescription>Die Dauer wird automatisch aus der Leihdauer-Konfiguration der Gerätekategorie übernommen.</CardDescription></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <Select value={deviceId} onValueChange={(value) => setDeviceId(value ?? "")}><SelectTrigger><SelectValue placeholder="Gerät auswählen" /></SelectTrigger><SelectContent>{devices.map((device) => <SelectItem key={device.id} value={String(device.id)}>{device.name} · {device.inventoryNumber}</SelectItem>)}</SelectContent></Select>
       <Input type="date" aria-label="Beginn" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} />
-      <Input type="date" aria-label="Ende" value={endsAt} onChange={(event) => setEndsAt(event.target.value)} />
       {canCreateForOthers ? <Select value={reserverUserId} onValueChange={(value) => setReserverUserId(value ?? "")}><SelectTrigger><SelectValue placeholder="Person auswählen" /></SelectTrigger><SelectContent>{users.map((user) => <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>)}</SelectContent></Select> : <div className="flex items-center rounded-md border bg-muted/40 px-3 text-sm text-muted-foreground">Für mich</div>}
       <Button disabled={pending === "create"} onClick={create}><CalendarCheck data-icon="inline-start" />Reservieren</Button>
     </CardContent></Card>

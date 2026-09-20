@@ -11,14 +11,14 @@ import { canCreateReservation, canPickupReservation, transitionReservationStatus
 
 export type ReservationActionResult = { success: true } | { success: false; error: string };
 
-export async function createReservation(deviceId: number, startsAt: string, endsAt: string, reserverUserId?: string): Promise<ReservationActionResult> {
+export async function createReservation(deviceId: number, startsAt: string, reserverUserId?: string): Promise<ReservationActionResult> {
   try {
     const session = await isAuthenticated({ behavior: "error" });
     const canCreateForOthers = await hasPermission({ reservation: ["create_for_others"] });
     if (!(await hasPermission({ reservation: ["create"] })) && !canCreateForOthers) return { success: false, error: "Du hast keine Berechtigung, Reservierungen anzulegen." };
-    if (!Number.isInteger(deviceId) || !isDate(startsAt) || !isDate(endsAt)) return { success: false, error: "Gerät und gültiger Zeitraum sind erforderlich." };
+    if (!Number.isInteger(deviceId) || !isDate(startsAt)) return { success: false, error: "Gerät und ein gültiger Start sind erforderlich." };
     const today = currentDate();
-    if (startsAt < today || endsAt < startsAt) return { success: false, error: "Der Zeitraum muss ab heute beginnen und in sich gültig sein." };
+    if (startsAt < today) return { success: false, error: "Die Reservierung muss ab heute beginnen." };
 
     let reserver = session.user.name;
     let ownerId = session.user.id;
@@ -32,9 +32,11 @@ export async function createReservation(deviceId: number, startsAt: string, ends
     }
 
     await db.transaction(async (transaction) => {
-      const deviceResult = await transaction.execute<{ id: number; quantity: number }>(sql`select id, quantity from devices where id = ${deviceId} for update`);
+      const deviceResult = await transaction.execute<{ id: number; quantity: number; category: string }>(sql`select id, quantity, category from devices where id = ${deviceId} for update`);
       const device = deviceResult.rows[0];
       if (!device) throw new Error("Gerät wurde nicht gefunden.");
+      const rules = await transaction.select({ category: loanDurationRules.category, durationDays: loanDurationRules.durationDays }).from(loanDurationRules);
+      const endsAt = calculateDueDate(startsAt, getDurationDays(rules, device.category));
       const [blockingLoans] = await transaction.select({ count: sql<number>`count(*)` }).from(loans).where(and(eq(loans.deviceId, deviceId), isNull(loans.returnedAt), sql`(${loans.dueAt} is null or ${loans.dueAt} >= ${startsAt} or ${loans.dueAt} < ${currentDate()})`));
       const activeReservations = await transaction.select({ startsAt: reservations.startsAt, endsAt: reservations.endsAt }).from(reservations).where(and(eq(reservations.deviceId, deviceId), eq(reservations.status, "active")));
       if (!canCreateReservation(device.quantity, Number(blockingLoans?.count ?? 0), activeReservations, startsAt, endsAt)) throw new Error("Das Gerät ist in diesem Zeitraum voraussichtlich nicht verfügbar.");

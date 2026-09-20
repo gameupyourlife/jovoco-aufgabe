@@ -40,7 +40,6 @@ export function InventoryWorkspace({ devices, categories, currentUserId, current
   const [pending, setPending] = useState<number | null>(null);
   const [reservationDevice, setReservationDevice] = useState<Device | null>(null);
   const [reservationStart, setReservationStart] = useState("");
-  const [reservationEnd, setReservationEnd] = useState("");
   const [reserverUserId, setReserverUserId] = useState(currentUserId ?? "");
   const displayDevices = adminMode || !currentUserId
     ? devices
@@ -78,13 +77,12 @@ export function InventoryWorkspace({ devices, categories, currentUserId, current
     if (!reservationDevice) return;
     setPending(-reservationDevice.id);
     setMessage(null);
-    const result = await createReservation(reservationDevice.id, reservationStart, reservationEnd, canCreateForOthers ? reserverUserId : undefined);
+    const result = await createReservation(reservationDevice.id, reservationStart, canCreateForOthers ? reserverUserId : undefined);
     setPending(null);
     if (!result.success) { setMessage({ type: "error", text: result.error }); return; }
     setMessage({ type: "success", text: "Reservierung angelegt." });
     setReservationDevice(null);
     setReservationStart("");
-    setReservationEnd("");
     setReserverUserId(currentUserId ?? "");
     router.refresh();
   }
@@ -105,13 +103,10 @@ export function InventoryWorkspace({ devices, categories, currentUserId, current
     {filteredDevices.length === 0 ? <Card><Empty><EmptyHeader><EmptyMedia variant="icon"><CircleAlert /></EmptyMedia><EmptyTitle>Keine passenden Geräte</EmptyTitle><EmptyDescription>Verändere Suche oder Filter.</EmptyDescription></EmptyHeader></Empty></Card> : <Card><CardContent className="p-0"><Table><TableHeader><TableRow><TableHead>Gerät</TableHead><TableHead>Kategorie</TableHead><TableHead>Bestand</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Aktion</TableHead></TableRow></TableHeader><TableBody>{filteredDevices.map((device) => <DeviceRow key={device.id} device={device} expanded={expanded === device.id} onToggle={() => setExpanded(expanded === device.id ? null : device.id)} onCheckout={() => checkout(device.id)} onReserve={() => setReservationDevice(device)} onReturn={returnLoan} pending={pending} canReturnAll={canReturnAll} currentUserName={currentUserName} adminMode={adminMode} />)}</TableBody></Table></CardContent></Card>}
     <Dialog open={reservationDevice !== null} onOpenChange={(open) => { if (!open) setReservationDevice(null); }}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Gerät reservieren</DialogTitle><DialogDescription>{reservationDevice?.name} · {reservationDevice?.inventoryNumber}. Wähle den Zeitraum, in dem du das Gerät brauchst.</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>Gerät reservieren</DialogTitle><DialogDescription>{reservationDevice?.name} · {reservationDevice?.inventoryNumber}. Die Dauer wird aus der Leihdauer-Konfiguration der Gerätekategorie übernommen.</DialogDescription></DialogHeader>
         {canCreateForOthers && <BorrowerCombobox users={users} value={reserverUserId} onChange={setReserverUserId} />}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5 text-sm"><span>Beginn</span><Input type="date" value={reservationStart} onChange={(event) => setReservationStart(event.target.value)} /></label>
-          <label className="flex flex-col gap-1.5 text-sm"><span>Ende</span><Input type="date" value={reservationEnd} onChange={(event) => setReservationEnd(event.target.value)} /></label>
-        </div>
-        <DialogFooter><Button variant="outline" onClick={() => setReservationDevice(null)}>Abbrechen</Button><Button disabled={pending === -(reservationDevice?.id ?? 0) || !reservationStart || !reservationEnd} onClick={reserve}><CalendarCheck data-icon="inline-start" />Reservieren</Button></DialogFooter>
+        <label className="flex flex-col gap-1.5 text-sm"><span>Beginn</span><Input type="date" value={reservationStart} onChange={(event) => setReservationStart(event.target.value)} /></label>
+        <DialogFooter><Button variant="outline" onClick={() => setReservationDevice(null)}>Abbrechen</Button><Button disabled={pending === -(reservationDevice?.id ?? 0) || !reservationStart} onClick={reserve}><CalendarCheck data-icon="inline-start" />Reservieren</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   </div>;

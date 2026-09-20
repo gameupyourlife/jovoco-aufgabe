@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx --test tests/reservations.test.ts",
     "db:push": "drizzle-kit push",
     "db:import": "tsx scripts/import-legacy.ts",
     "format": "prettier --write \"**/*.{ts,tsx}\"",

@@ -52,6 +52,17 @@ export const loans = pgTable("loans", {
   returnedAt: date("returned_at"),
 });
 
+export const reservations = pgTable("reservations", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  deviceId: integer("device_id").notNull().references(() => devices.id),
+  reserverUserId: text("reserver_user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  reserver: text().notNull(),
+  startsAt: date("starts_at").notNull(),
+  endsAt: date("ends_at").notNull(),
+  status: text().notNull().default("active"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const loanDurationRules = pgTable("loan_duration_rules", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   category: text().unique().notNull(),

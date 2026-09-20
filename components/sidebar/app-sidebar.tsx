@@ -7,6 +7,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from "@/component
 const navMain = [
   { title: "Übersicht", url: "/", icon: "dashboard" },
   { title: "Inventar", url: "/inventory", icon: "inventory" },
+  { title: "Reservierungen", url: "/reservations", icon: "reservations" },
   { title: "Importberichte", url: "/imports", icon: "imports" },
 ];
 

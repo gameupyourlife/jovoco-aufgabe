@@ -5,8 +5,9 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { hasPermission, isAuthenticated } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
-import { devices, loanDurationRules, loans, user } from "@/lib/db/schema";
+import { devices, loanDurationRules, loans, reservations, user } from "@/lib/db/schema";
 import { calculateDueDate, getDurationDays } from "@/lib/data/loan-duration";
+import { canCheckoutLoan } from "@/lib/domain/reservations";
 import type { Device } from "@/lib/data/inventory";
 
 export type LoanActionResult =
@@ -59,8 +60,20 @@ export async function checkoutLoan(deviceId: number, borrower: string, borrowerU
       const openLoans = await transaction.select({ count: sql<number>`count(*)` })
         .from(loans)
         .where(and(eq(loans.deviceId, deviceId), isNull(loans.returnedAt)));
-      if (Number(openLoans[0]?.count ?? 0) >= device.quantity) {
+      const openLoanCount = Number(openLoans[0]?.count ?? 0);
+      if (!canCheckoutLoan(device.quantity, openLoanCount, 0)) {
         throw new Error("Keine Einheit verfügbar. Bitte zuerst eine Rückgabe erfassen.");
+      }
+
+      const dueAt = calculateDueDate(borrowedAt, getDurationDays(durationRules, deviceDetails.category));
+      const [blockingReservations] = await transaction.select({ count: sql<number>`count(*)` })
+        .from(reservations)
+        .where(and(
+          eq(reservations.deviceId, deviceId),
+          eq(reservations.status, "active"),
+        ));
+      if (!canCheckoutLoan(device.quantity, openLoanCount, Number(blockingReservations?.count ?? 0))) {
+        throw new Error("Keine Einheit verfügbar. Für dieses Gerät besteht bereits eine aktive Reservierung.");
       }
 
       await transaction.insert(loans).values({
@@ -69,7 +82,7 @@ export async function checkoutLoan(deviceId: number, borrower: string, borrowerU
         borrowerUserId: canCreateForOthers && borrowerUserId ? borrowerUserId : session.user.id,
         borrower: borrower.trim(),
         borrowedAt,
-        dueAt: calculateDueDate(borrowedAt, getDurationDays(durationRules, deviceDetails.category)),
+        dueAt,
       });
     });
 

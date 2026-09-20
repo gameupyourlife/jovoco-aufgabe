@@ -5,6 +5,7 @@ export const statement = {
     ...defaultStatements,
     inventory: ["read", "read_all"],
     loan: ["create", "create_for_others", "read", "read_all", "return", "return_all"],
+    reservation: ["create", "create_for_others", "read", "read_all", "cancel", "cancel_all", "pickup", "pickup_all"],
     loan_settings: ["read", "manage"],
 } as const;
 
@@ -13,6 +14,7 @@ export const ac = createAccessControl(statement);
 export const user = ac.newRole({
     inventory: ["read"],
     loan: ["create", "read", "return"],
+    reservation: ["create", "read", "cancel", "pickup"],
 });
 
 export const admin = ac.newRole({
@@ -20,4 +22,5 @@ export const admin = ac.newRole({
     inventory: ["read", "read_all"],
     loan: ["create", "create_for_others", "read", "read_all", "return", "return_all"],
     loan_settings: ["read", "manage"],
+    reservation: ["create", "create_for_others", "read", "read_all", "cancel", "cancel_all", "pickup", "pickup_all"],
 });

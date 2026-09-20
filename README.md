@@ -66,3 +66,19 @@ Die Seite `Meine Ausleihen` zeigt ausschließlich offene Ausleihen mit der eigen
 - Benutzer werden über Rollen (`user` und `admin`) verwaltet; individuelle Benutzerberechtigungen sind derzeit nicht erforderlich.
 - Historische Ausleihen werden nicht nachträglich automatisch einem Benutzer zugeordnet, weil die Rohdaten keine verlässliche Benutzer-ID enthalten.
 - Die Benutzerliste für delegierte Ausleihen ist auf die ersten 100 Konten begrenzt. Für einen größeren Produktivbestand wäre eine serverseitige Suche mit Pagination sinnvoll.
+
+## Reservierungen
+
+Reservierungen sind unter `/reservations` verfügbar. Sie werden in der Tabelle `reservations` gespeichert und haben einen unveränderlichen Lebenszyklus: `active`, `cancelled` oder `fulfilled`. Stornierte und abgeholte Reservierungen bleiben sichtbar, damit die Entscheidungshistorie erhalten bleibt.
+
+### Getroffene Regeln und Gründe
+
+- Eine Reservierung gilt für eine Einheit eines Geräts und besitzt ein inklusives Start- und Enddatum. Berühren sich zwei Zeiträume am selben Tag, überschneiden sie sich. Das verhindert Doppelbuchungen an Übergabetagen.
+- Der Zeitraum darf ab heute beginnen und muss mit `Ende >= Beginn` gültig sein. So sind Reservierungen für den aktuellen Tag möglich, ohne rückwirkende Reservierungen zu erzeugen.
+- Bei der Anlage wird die Gerätezeile in einer PostgreSQL-Transaktion mit `FOR UPDATE` gesperrt. Danach werden offene Ausleihen und aktive, zeitlich überschneidende Reservierungen gezählt. Die Reservierung wird abgelehnt, sobald diese belegten Einheiten die Geräte-Menge erreichen. Damit entscheidet nicht nur die Oberfläche über Verfügbarkeit und parallele Anfragen können keine Doppelbuchung erzeugen.
+- Auch eine direkte Ausleihe prüft die aktive Reservierungsbelegung. Eine aktive Reservierung reserviert eine Einheit bereits ab ihrer Anlage; deshalb wird die direkte Ausleihe abgelehnt, sobald offene Ausleihen plus aktive Reservierungen die Geräte-Menge erreichen. Bei Geräten mit mehreren Einheiten bleiben nicht reservierte Einheiten nutzbar. Die Inventaransicht zeigt den Status `Reserviert` und deaktiviert die direkte Ausleihe, sobald das Gerät reservierte Einheiten hat. Die Abholung über die Reservierung erzeugt stattdessen die Ausleihe.
+- Eine offene Ausleihe blockiert einen zukünftigen Zeitraum, wenn sie kein Fälligkeitsdatum hat oder ihr Fälligkeitsdatum am bzw. nach dem Reservierungsbeginn liegt. Überfällige Ausleihen haben ein Fälligkeitsdatum in der Vergangenheit und blockieren deshalb vorsichtshalber jeden zukünftigen Zeitraum: Ohne bestätigte Rückgabe darf das Gerät nicht fest eingeplant werden.
+- Eine Reservierung kann nur innerhalb ihres Zeitraums abgeholt werden. Bei der Abholung wird sie in derselben Transaktion als `fulfilled` markiert und eine normale Ausleihe mit der aktuell konfigurierten Leihfrist erzeugt. Ist die Einheit inzwischen durch eine andere offene Ausleihe belegt, wird die Abholung abgelehnt statt die Bestandsgrenze zu überschreiten.
+- Stornieren, Abholen und Erstellen sind Server Actions. Better Auth prüft die Berechtigung serverseitig; normale Benutzer sehen und bearbeiten nur ihre eigenen Reservierungen. Administratoren erhalten die `read_all`, `cancel_all` und `pickup_all`-Varianten. Die Daten speichern zusätzlich die Benutzer-ID und nicht nur den damals sichtbaren Namen, weil Namen nicht eindeutig oder autoritativ sind.
+
+Die zentralen Intervallgrenzen sind mit kleinen Unit-Tests in `tests/reservations.test.ts` abgesichert: angrenzende Zeiträume überschneiden sich, eine Lücke von einem Tag nicht, und vollständig eingeschlossene Zeiträume überschneiden sich.

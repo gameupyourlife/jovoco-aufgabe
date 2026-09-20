@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { CalendarCheck, CalendarClock, ClipboardList, LayoutDashboard, PackageSearch, ShieldCheck, type LucideIcon } from "lucide-react"
+import { BarChart3, CalendarCheck, CalendarClock, ClipboardList, LayoutDashboard, PackageSearch, PencilRuler, ShieldCheck, type LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 
 import {
@@ -19,6 +19,8 @@ const icons: Record<string, LucideIcon> = {
   imports: ClipboardList,
   users: ShieldCheck,
   settings: CalendarClock,
+  manage: PencilRuler,
+  reports: BarChart3,
 }
 
 export function NavMain({

@@ -14,7 +14,7 @@ export type LoanActionResult =
   | { success: true }
   | { success: false; error: string };
 
-type DeviceAvailability = Pick<Device, "id" | "quantity">;
+type DeviceAvailability = Pick<Device, "id" | "quantity"> & { retired_at: string | null };
 
 export async function checkoutLoan(deviceId: number, borrower: string, borrowerUserId?: string): Promise<LoanActionResult> {
   try {
@@ -43,13 +43,14 @@ export async function checkoutLoan(deviceId: number, borrower: string, borrowerU
 
     await db.transaction(async (transaction) => {
       const deviceResult = await transaction.execute<DeviceAvailability>(sql`
-        select id, quantity
+        select id, quantity, retired_at
         from devices
         where id = ${deviceId}
         for update
       `);
       const device = deviceResult.rows[0];
       if (!device) throw new Error("Gerät wurde nicht gefunden.");
+      if (device.retired_at) throw new Error("Dieses Gerät wurde ausgemustert und kann nicht mehr ausgeliehen werden.");
 
       const durationRules = await transaction.select({ category: loanDurationRules.category, durationDays: loanDurationRules.durationDays })
         .from(loanDurationRules);

@@ -67,6 +67,40 @@ Die Seite `Meine Ausleihen` zeigt ausschließlich offene Ausleihen mit der eigen
 - Historische Ausleihen werden nicht nachträglich automatisch einem Benutzer zugeordnet, weil die Rohdaten keine verlässliche Benutzer-ID enthalten.
 - Die Benutzerliste für delegierte Ausleihen ist auf die ersten 100 Konten begrenzt. Für einen größeren Produktivbestand wäre eine serverseitige Suche mit Pagination sinnvoll.
 
+## Geräteverwaltung und Auswertungen
+
+Task 5 ist als serverseitig geschützter Verwaltungsbereich unter `/device-management` und als Auswertungsseite unter `/reports` umgesetzt.
+
+### Geräteverwaltung
+
+- Geräte können mit Bezeichnung, eindeutiger Inventarnummer, Kategorie, Menge und Anschaffungsdatum angelegt und bearbeitet werden.
+- Ausmustern setzt `devices.retired_at`, statt den Datensatz zu löschen. Dadurch bleiben Ausleihhistorie und Inventarnummer nachvollziehbar.
+- Ausgemusterte Geräte werden nicht mehr als verfügbar gezählt, können nicht ausgeliehen oder neu reserviert werden und werden bei bestehenden historischen Ausleihen weiterhin angezeigt.
+- Das Ausmustern beendet keine laufende Ausleihe automatisch. Eine offene Ausleihe bleibt bis zur regulären Rückgabe sichtbar und wird in der Historie bewahrt.
+
+### Berechtigungen
+
+Die neuen Berechtigungen sind in Better Auth als Teil der Access-Control-Statements definiert:
+
+| Berechtigung | Bedeutung |
+| --- | --- |
+| `inventory.create` | Geräte anlegen |
+| `inventory.update` | Geräte bearbeiten und den Verwaltungsbereich lesen |
+| `inventory.retire` | Geräte ausmustern |
+| `report.read` | Auswertungen ansehen |
+
+Administratoren erhalten alle vier Berechtigungen. Normale Benutzer erhalten keine Verwaltungs- oder Auswertungsberechtigungen. Die Server Actions und Datenzugriffe prüfen die Berechtigung unabhängig davon, welche Funktionen die Oberfläche anzeigt.
+
+### Auswertungen
+
+Die Auswertungen werden serverseitig aus PostgreSQL berechnet und mit dem shadcn-Chart-Wrapper für Recharts dargestellt:
+
+- **Aktuell meist ausgeliehen:** offene Ausleihen nach der ausleihenden Person.
+- **Am häufigsten verliehen:** alle historischen Ausleihen pro Gerät, inklusive zurückgegebener Ausleihen.
+- **Auslastung je Kategorie:** offene Ausleihen geteilt durch die Menge aktiver Geräte dieser Kategorie. Ausgemusterte Geräte werden aus Kapazität und offenen Ausleihen ausgeschlossen.
+
+Nach dem Hinzufügen der Spalte `retired_at` muss die PostgreSQL-Datenbank mit `npm run db:push` synchronisiert werden.
+
 ## Reservierungen
 
 Reservierungen sind unter `/reservations` verfügbar. Sie werden in der Tabelle `reservations` gespeichert und haben einen unveränderlichen Lebenszyklus: `active`, `cancelled` oder `fulfilled`. Stornierte und abgeholte Reservierungen bleiben sichtbar, damit die Entscheidungshistorie erhalten bleibt.

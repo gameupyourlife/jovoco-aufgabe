@@ -17,9 +17,11 @@ type SidebarUser = {
   image?: string | null;
 };
 
-export function AppSidebar({ user, canManageUsers, canManageLoanSettings, ...props }: React.ComponentProps<typeof Sidebar> & { user: SidebarUser; canManageUsers: boolean; canManageLoanSettings: boolean }) {
+export function AppSidebar({ user, canManageUsers, canManageLoanSettings, canManageInventory, canViewReports, ...props }: React.ComponentProps<typeof Sidebar> & { user: SidebarUser; canManageUsers: boolean; canManageLoanSettings: boolean; canManageInventory: boolean; canViewReports: boolean }) {
   const items = [
     ...navMain,
+    ...(canManageInventory ? [{ title: "Geräteverwaltung", url: "/device-management", icon: "manage" as const }] : []),
+    ...(canViewReports ? [{ title: "Auswertungen", url: "/reports", icon: "reports" as const }] : []),
     ...(canManageLoanSettings ? [{ title: "Leihfristen", url: "/loan-settings", icon: "settings" as const }] : []),
     ...(canManageUsers ? [{ title: "Benutzer", url: "/users", icon: "users" as const }] : []),
   ];

@@ -57,7 +57,7 @@ export async function getInventoryData(): Promise<InventoryData> {
   const inventoryDevices = deviceRows.map((device) => {
     const deviceLoans = visibleLoansByDevice.get(device.id) ?? [];
     const openLoanCount = (allLoansByDevice.get(device.id) ?? []).filter((loan) => !loan.returnedAt).length;
-    return { ...device, available: Math.max(device.quantity - openLoanCount, 0), reserved: reservationsByDevice.get(device.id) ?? 0, loans: deviceLoans };
+    return { ...device, available: device.retiredAt ? 0 : Math.max(device.quantity - openLoanCount, 0), reserved: reservationsByDevice.get(device.id) ?? 0, loans: deviceLoans };
   }).filter((device) => canViewAllInventory || device.available > 0 || device.loans.length > 0);
 
   return {

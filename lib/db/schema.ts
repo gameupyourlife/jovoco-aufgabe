@@ -39,6 +39,7 @@ export const devices = pgTable("devices", {
   category: text().notNull(),
   quantity: integer().notNull(),
   acquiredAt: date("acquired_at").notNull(),
+  retiredAt: date("retired_at"),
 });
 
 export const loans = pgTable("loans", {

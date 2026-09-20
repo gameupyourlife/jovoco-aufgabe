@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { devices, reservations } from "@/lib/db/schema";
@@ -15,7 +15,7 @@ export type ReservationWithDevice = Reservation & {
 export async function getReservableDevices() {
   await isAuthenticated({ behavior: "error", permissions: { reservation: ["read"] } });
   return db.select({ id: devices.id, name: devices.name, inventoryNumber: devices.inventoryNumber, category: devices.category })
-    .from(devices).orderBy(asc(devices.name), asc(devices.inventoryNumber));
+    .from(devices).where(isNull(devices.retiredAt)).orderBy(asc(devices.name), asc(devices.inventoryNumber));
 }
 
 export async function getReservations(): Promise<ReservationWithDevice[]> {

@@ -15,11 +15,12 @@ export default async function ReservationsPage() {
     hasPermission({ reservation: ["cancel_all"] }),
     hasPermission({ reservation: ["pickup_all"] }),
   ]);
-  const [devices, reservations, users] = await Promise.all([
+  const [devices, allReservations, users] = await Promise.all([
     getReservableDevices(),
     getReservations(),
     canCreateForOthers ? getManagedUsers() : Promise.resolve([]),
   ]);
+  const reservations = allReservations.filter((reservation) => reservation.reserverUserId === session.user.id);
 
   return <main className="min-h-svh bg-muted/30 px-4 py-8 sm:px-6">
     <div className="mx-auto flex max-w-7xl flex-col gap-8">

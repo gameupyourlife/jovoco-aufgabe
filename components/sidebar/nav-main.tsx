@@ -25,7 +25,9 @@ const icons: Record<string, LucideIcon> = {
 
 export function NavMain({
   items,
+  label = "Geräteverleih",
 }: {
+  label?: string
   items: {
     title: string
     url: string
@@ -41,7 +43,7 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Geräteverleih</SidebarGroupLabel>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const isActive = pathname === item.url || (item.url !== "/" && pathname.startsWith(`${item.url}/`));

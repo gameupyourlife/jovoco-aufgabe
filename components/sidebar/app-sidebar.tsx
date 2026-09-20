@@ -4,11 +4,10 @@ import { NavMain } from "@/components/sidebar/nav-main";
 import { NavUser } from "@/components/sidebar/nav-user";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from "@/components/ui/sidebar";
 
-const navMain = [
+const userNav = [
   { title: "Übersicht", url: "/", icon: "dashboard" },
   { title: "Inventar", url: "/inventory", icon: "inventory" },
   { title: "Reservierungen", url: "/reservations", icon: "reservations" },
-  { title: "Importberichte", url: "/imports", icon: "imports" },
 ];
 
 type SidebarUser = {
@@ -19,7 +18,6 @@ type SidebarUser = {
 
 export function AppSidebar({ user, canManageUsers, canManageLoanSettings, canManageInventory, canViewReports, ...props }: React.ComponentProps<typeof Sidebar> & { user: SidebarUser; canManageUsers: boolean; canManageLoanSettings: boolean; canManageInventory: boolean; canViewReports: boolean }) {
   const items = [
-    ...navMain,
     ...(canManageInventory ? [{ title: "Geräteverwaltung", url: "/device-management", icon: "manage" as const }] : []),
     ...(canViewReports ? [{ title: "Auswertungen", url: "/reports", icon: "reports" as const }] : []),
     ...(canManageLoanSettings ? [{ title: "Leihfristen", url: "/loan-settings", icon: "settings" as const }] : []),
@@ -28,7 +26,8 @@ export function AppSidebar({ user, canManageUsers, canManageLoanSettings, canMan
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarContent>
-        <NavMain items={items} />
+        <NavMain label="Mein Bereich" items={userNav} />
+        {items.length > 0 && <NavMain label="Administration" items={items} />}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

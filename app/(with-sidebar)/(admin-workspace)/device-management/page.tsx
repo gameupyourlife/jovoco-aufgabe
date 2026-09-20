@@ -1,8 +1,8 @@
 import { CircleAlert } from "lucide-react";
 
 import { DeviceManagement } from "@/components/device-management";
+import { MetricCard } from "@/components/metric-card";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { isAuthenticated } from "@/lib/auth/guard";
 import { getManagedDevices } from "@/lib/data/device-management";
@@ -20,9 +20,9 @@ export default async function DeviceManagementPage() {
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <header className="flex flex-col gap-3"><Badge variant="outline" className="w-fit">Administration</Badge><h1 className="font-heading text-4xl font-semibold tracking-tight">Geräteverwaltung</h1><p className="max-w-2xl text-muted-foreground">Stammdaten, Bestand und Ausmusterungen zentral verwalten. Änderungen wirken direkt im öffentlichen Inventar.</p></header>
         <section className="grid gap-4 sm:grid-cols-3">
-          <AdminMetric label="Geräte" value={activeDevices.length} detail="Aktive Datensätze" />
-          <AdminMetric label="Einheiten" value={totalUnits} detail="Gesamter aktiver Bestand" />
-          <AdminMetric label="Ausgemustert" value={retiredDevices} detail="Für Historie archiviert" />
+          <MetricCard label="Geräte" value={activeDevices.length} detail="Aktive Datensätze" />
+          <MetricCard label="Einheiten" value={totalUnits} detail="Gesamter aktiver Bestand" />
+          <MetricCard label="Ausgemustert" value={retiredDevices} detail="Für Historie archiviert" />
         </section>
         <DeviceManagement devices={devices} />
       </div>
@@ -32,6 +32,3 @@ export default async function DeviceManagementPage() {
   }
 }
 
-function AdminMetric({ label, value, detail }: { label: string; value: number; detail: string }) {
-  return <Card><CardHeader><CardDescription>{label}</CardDescription><CardTitle className="text-3xl">{value}</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">{detail}</CardContent></Card>;
-}

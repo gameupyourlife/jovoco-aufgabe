@@ -2,15 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Archive, CheckCircle2, Pencil, Plus, RotateCcw, Search } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 import { createDevice, retireDevice, updateDevice, type DeviceInput } from "@/lib/actions/devices";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ActionMessage } from "@/components/action-message";
+import { DeviceManagementForm } from "@/components/device-management-form";
+import { DeviceManagementTable } from "@/components/device-management-table";
 import type { Device } from "@/lib/data/inventory";
 
 const emptyForm: DeviceInput = { name: "", inventoryNumber: "", category: "", quantity: 1, acquiredAt: new Date().toISOString().slice(0, 10) };
@@ -63,40 +60,22 @@ export function DeviceManagement({ devices }: Props) {
   }
 
   return <div className="flex flex-col gap-6">
-    {message && <Alert variant={message.type === "error" ? "destructive" : "default"}><CheckCircle2 /><AlertTitle>{message.type === "error" ? "Aktion nicht möglich" : "Gespeichert"}</AlertTitle><AlertDescription>{message.text}</AlertDescription></Alert>}
-    <Card>
-      <CardHeader>
-        <CardTitle>{editingId === null ? "Gerät anlegen" : "Gerät bearbeiten"}</CardTitle>
-        <CardDescription>Ausgemusterte Geräte bleiben für die Historie erhalten, können aber nicht mehr ausgeliehen werden.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5" onSubmit={submit}>
-          <label className="flex flex-col gap-1.5 text-sm"><span>Bezeichnung</span><Input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
-          <label className="flex flex-col gap-1.5 text-sm"><span>Inventarnummer</span><Input required value={form.inventoryNumber} onChange={(event) => setForm({ ...form, inventoryNumber: event.target.value })} /></label>
-          <label className="flex flex-col gap-1.5 text-sm"><span>Kategorie</span><Input required value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} /></label>
-          <label className="flex flex-col gap-1.5 text-sm"><span>Menge</span><Input required min={1} max={10000} type="number" value={form.quantity} onChange={(event) => setForm({ ...form, quantity: Number(event.target.value) })} /></label>
-          <label className="flex flex-col gap-1.5 text-sm"><span>Anschaffung</span><Input required type="date" value={form.acquiredAt} onChange={(event) => setForm({ ...form, acquiredAt: event.target.value })} /></label>
-          <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-5">
-            <Button type="submit" disabled={pending}><Plus data-icon="inline-start" />{editingId === null ? "Anlegen" : "Speichern"}</Button>
-            {editingId !== null && <Button type="button" variant="outline" onClick={resetForm} disabled={pending}><RotateCcw data-icon="inline-start" />Abbrechen</Button>}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-
-    <Card>
-      <CardHeader><CardTitle>Bestand verwalten</CardTitle><CardDescription>{devices.length} Geräte im Datenmodell, einschließlich ausgemusterter Geräte.</CardDescription><div className="relative mt-3 max-w-md"><Search className="absolute top-2.5 left-2.5 text-muted-foreground" /><Input className="pl-8" placeholder="Gerät, Nummer oder Kategorie suchen" value={search} onChange={(event) => setSearch(event.target.value)} /></div></CardHeader>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader><TableRow><TableHead>Gerät</TableHead><TableHead>Kategorie</TableHead><TableHead>Menge</TableHead><TableHead>Anschaffung</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Aktionen</TableHead></TableRow></TableHeader>
-          <TableBody>{filteredDevices.map((device) => <TableRow key={device.id}>
-            <TableCell><div className="flex flex-col"><span className="font-medium">{device.name}</span><span className="font-mono text-xs text-muted-foreground">{device.inventoryNumber}</span></div></TableCell>
-            <TableCell>{device.category}</TableCell><TableCell>{device.quantity}</TableCell><TableCell>{device.acquiredAt}</TableCell>
-            <TableCell>{device.retiredAt ? <Badge variant="outline"><Archive data-icon="inline-start" />Ausgemustert</Badge> : <Badge variant="secondary">Aktiv</Badge>}</TableCell>
-            <TableCell><div className="flex flex-wrap justify-end gap-2"><Button size="sm" variant="outline" onClick={() => editDevice(device)} disabled={pending}><Pencil data-icon="inline-start" />Bearbeiten</Button>{!device.retiredAt && <Button size="sm" variant="destructive" onClick={() => retire(device.id)} disabled={pending}><Archive data-icon="inline-start" />Ausmustern</Button>}</div></TableCell>
-          </TableRow>)}</TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    {message && <ActionMessage message={message} icon={<CheckCircle2 />} />}
+    <DeviceManagementForm
+      form={form}
+      editing={editingId !== null}
+      pending={pending}
+      onChange={(field, value) => setForm((current) => ({ ...current, [field]: value }))}
+      onSubmit={submit}
+      onReset={resetForm}
+    />
+    <DeviceManagementTable
+      devices={filteredDevices}
+      search={search}
+      pending={pending}
+      onSearchChange={setSearch}
+      onEdit={editDevice}
+      onRetire={retire}
+    />
   </div>;
 }

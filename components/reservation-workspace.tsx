@@ -12,7 +12,7 @@ import { returnLoan } from "@/lib/actions/inventory";
 import type { InventoryDevice } from "@/lib/data/inventory";
 import type { ReservationWithDevice } from "@/lib/data/reservations";
 import type { ManagedUser } from "@/lib/data/users";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ActionMessage } from "@/components/action-message";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -175,13 +175,7 @@ export function ReservationWorkspace({
     return (
         <div className="flex flex-col gap-6">
             {message && (
-                <Alert variant={message.type === "error" ? "destructive" : "default"}>
-                    <CalendarCheck />
-                    <AlertTitle>
-                        {message.type === "error" ? "Aktion nicht möglich" : "Gespeichert"}
-                    </AlertTitle>
-                    <AlertDescription>{message.text}</AlertDescription>
-                </Alert>
+                <ActionMessage message={message} icon={<CalendarCheck />} />
             )}
             <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Summary label="Aktive Reservierungen" value={activeReservations.length} detail="Noch nicht abgeholt" icon={<CalendarCheck />} />

@@ -2,32 +2,33 @@ import { desc, eq } from "drizzle-orm";
 import { CircleAlert, Database, FileJson, Rows3 } from "lucide-react";
 
 import { ImportSelector } from "@/components/import-selector";
+import { MetricCard } from "@/components/metric-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
 } from "@/components/ui/empty";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { db } from "@/lib/db";
 import { importRows, importRuns } from "@/lib/db/schema";
@@ -98,9 +99,9 @@ export default async function Page({ searchParams }: PageProps) {
           ) : (
             <>
               <section className="grid gap-4 sm:grid-cols-3">
-                <Metric label="Übernommen" value={run.importedCount} description="Gültige Rohdaten" icon={<Database />} />
-                <Metric label="Warnungen" value={run.warningCount} description="Übernommen mit Vorbehalt" icon={<CircleAlert />} />
-                <Metric label="Abgelehnt" value={run.rejectedCount} description="Nicht in das Modell übernommen" icon={<Rows3 />} />
+                <MetricCard label="Übernommen" value={run.importedCount} detail="Gültige Rohdaten" icon={<Database />} />
+                <MetricCard label="Warnungen" value={run.warningCount} detail="Übernommen mit Vorbehalt" icon={<CircleAlert />} />
+                <MetricCard label="Abgelehnt" value={run.rejectedCount} detail="Nicht in das Modell übernommen" icon={<Rows3 />} />
               </section>
               <Card>
                 <CardHeader className="border-b">
@@ -157,15 +158,3 @@ export default async function Page({ searchParams }: PageProps) {
   }
 }
 
-function Metric({ label, value, description, icon }: { label: string; value: number; description: string; icon: React.ReactNode }) {
-  return (
-    <Card size="sm">
-      <CardHeader>
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-3xl">{value}</CardTitle>
-        <CardAction className="text-muted-foreground">{icon}</CardAction>
-      </CardHeader>
-      <CardContent className="text-xs text-muted-foreground">{description}</CardContent>
-    </Card>
-  );
-}

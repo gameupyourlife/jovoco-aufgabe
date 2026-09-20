@@ -1,9 +1,9 @@
 import { CalendarRange, CircleAlert, History, Users } from "lucide-react";
 
 import { ReservationWorkspace } from "@/components/reservation-workspace";
+import { MetricCard } from "@/components/metric-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { hasPermission, isAuthenticated } from "@/lib/auth/guard";
 import { getInventoryData } from "@/lib/data/inventory";
 import { getReservableDevices, getReservations } from "@/lib/data/reservations";
@@ -29,7 +29,7 @@ export default async function ReservationManagementPage() {
     return <main className="min-h-svh bg-muted/30 px-4 py-8 sm:px-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <header className="flex flex-col gap-3"><Badge variant="outline" className="w-fit">Administration</Badge><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><h1 className="font-heading text-4xl font-semibold tracking-tight">Reservierungsverwaltung</h1><p className="mt-2 max-w-2xl text-muted-foreground">Alle Gerätevormerkungen prüfen, für Benutzer anlegen und innerhalb des Reservierungszeitraums abholen.</p></div><Badge variant="outline"><CalendarRange data-icon="inline-start" />{activeReservations} aktiv</Badge></div></header>
-        <section className="grid gap-4 sm:grid-cols-3"><AdminMetric label="Aktive Reservierungen" value={activeReservations} detail="Noch nicht abgeholt" icon={<CalendarRange />} /><AdminMetric label="Betroffene Benutzer" value={peopleWithReservations} detail="Mit aktiver Vormerkung" icon={<Users />} /><AdminMetric label="Geräte im Verlauf" value={inventory.devices.length} detail="Mit Bestandsdaten" icon={<History />} /></section>
+        <section className="grid gap-4 sm:grid-cols-3"><MetricCard label="Aktive Reservierungen" value={activeReservations} detail="Noch nicht abgeholt" icon={<CalendarRange />} /><MetricCard label="Betroffene Benutzer" value={peopleWithReservations} detail="Mit aktiver Vormerkung" icon={<Users />} /><MetricCard label="Geräte im Verlauf" value={inventory.devices.length} detail="Mit Bestandsdaten" icon={<History />} /></section>
         <ReservationWorkspace devices={devices} reservations={reservations} inventoryDevices={inventory.devices} users={users} currentUserId={session.user.id} canCreateForOthers={canCreateForOthers} canCancelAll={canCancelAll} canPickupAll={canPickupAll} canReturnAll={false} canViewAll allowLoanReturns={false} />
       </div>
     </main>;
@@ -38,6 +38,3 @@ export default async function ReservationManagementPage() {
   }
 }
 
-function AdminMetric({ label, value, detail, icon }: { label: string; value: number; detail: string; icon: React.ReactNode }) {
-  return <Card><CardHeader className="flex-row items-start justify-between gap-4 space-y-0"><div><CardDescription>{label}</CardDescription><CardTitle className="text-3xl">{value}</CardTitle></div><span className="rounded-lg bg-muted p-2 text-primary">{icon}</span></CardHeader><CardContent className="text-sm text-muted-foreground">{detail}</CardContent></Card>;
-}

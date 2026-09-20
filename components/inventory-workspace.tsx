@@ -12,7 +12,8 @@ import {
 	Search,
 } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ActionMessage } from "@/components/action-message"
+import { BorrowerCombobox } from "@/components/borrower-combobox"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,14 +31,6 @@ import {
 	EmptyTitle,
 } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
-import {
-	Combobox,
-	ComboboxContent,
-	ComboboxEmpty,
-	ComboboxInput,
-	ComboboxItem,
-	ComboboxList,
-} from "@/components/ui/combobox"
 import {
 	Select,
 	SelectContent,
@@ -198,13 +191,7 @@ export function InventoryWorkspace({
 	return (
 		<div className="flex flex-col gap-4">
 			{message && (
-				<Alert variant={message.type === "error" ? "destructive" : "default"}>
-					<CheckCircle2 />
-					<AlertTitle>
-						{message.type === "error" ? "Aktion nicht möglich" : "Gespeichert"}
-					</AlertTitle>
-					<AlertDescription>{message.text}</AlertDescription>
-				</Alert>
+				<ActionMessage message={message} icon={<CheckCircle2 />} />
 			)}
 			<Card>
 				<CardHeader>
@@ -545,39 +532,3 @@ function DeviceRow({
 	)
 }
 
-function BorrowerCombobox({
-	users,
-	value,
-	onChange,
-}: {
-	users: ManagedUser[]
-	value: string
-	onChange: (value: string) => void
-}) {
-	return (
-		<Combobox
-			items={users}
-			value={users.find((user) => user.id === value) ?? null}
-			onValueChange={(nextUser) => onChange(nextUser?.id ?? "")}
-			itemToStringLabel={(user) => user?.name ?? ""}
-			itemToStringValue={(user) => user?.id ?? ""}
-		>
-			<ComboboxInput
-				placeholder="Person suchen ..."
-				showClear
-				className="w-full"
-			/>
-			<ComboboxContent>
-				<ComboboxList>
-					<ComboboxEmpty>Keine passende Person gefunden.</ComboboxEmpty>
-					{users.map((user) => (
-						<ComboboxItem key={user.id} value={user}>
-							{user.name}{" "}
-							<span className="text-muted-foreground">· {user.email}</span>
-						</ComboboxItem>
-					))}
-				</ComboboxList>
-			</ComboboxContent>
-		</Combobox>
-	)
-}

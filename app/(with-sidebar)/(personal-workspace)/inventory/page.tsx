@@ -1,9 +1,10 @@
 import { Archive, Boxes, CircleAlert, History, PackageCheck } from "lucide-react";
 
 import { InventoryWorkspace } from "@/components/inventory-workspace";
+import { MetricCard } from "@/components/metric-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { isAuthenticated } from "@/lib/auth/guard";
 import { getInventoryData } from "@/lib/data/inventory";
@@ -32,9 +33,9 @@ export default async function InventoryPage() {
           </header>
 
           <section className="grid gap-4 sm:grid-cols-3">
-            <Metric label="Geräte" value={inventory.devices.length} description="Im Inventar" icon={<Boxes />} />
-            <Metric label="Verfügbar" value={inventory.availableCount} description="Einheiten sofort ausleihbar" icon={<PackageCheck />} />
-            <Metric label="Offene Ausleihen" value={personalLoanCount} description="Auf deinem Konto" icon={<History />} />
+            <MetricCard label="Geräte" value={inventory.devices.length} detail="Im Inventar" icon={<Boxes />} />
+            <MetricCard label="Verfügbar" value={inventory.availableCount} detail="Einheiten sofort ausleihbar" icon={<PackageCheck />} />
+            <MetricCard label="Offene Ausleihen" value={personalLoanCount} detail="Auf deinem Konto" icon={<History />} />
           </section>
 
           {inventory.devices.length === 0 ? (
@@ -48,6 +49,3 @@ export default async function InventoryPage() {
   }
 }
 
-function Metric({ label, value, description, icon }: { label: string; value: number; description: string; icon: React.ReactNode }) {
-  return <Card size="sm"><CardHeader><CardDescription>{label}</CardDescription><CardTitle className="text-3xl">{value}</CardTitle><CardAction className="text-muted-foreground">{icon}</CardAction></CardHeader><CardContent className="text-xs text-muted-foreground">{description}</CardContent></Card>;
-}

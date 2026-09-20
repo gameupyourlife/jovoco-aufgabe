@@ -3,6 +3,7 @@ import { ArrowRight, CalendarCheck, PackageCheck, RotateCcw, ShieldCheck } from 
 
 import { DashboardReservations } from "@/components/dashboard-reservations";
 import { MyLoans } from "@/components/my-loans";
+import { MetricCard } from "@/components/metric-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,10 +45,10 @@ export default async function DashboardPage() {
                 </header>
 
                 <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <DashboardMetric label="Offene Ausleihen" value={myLoans.length} detail="Auf deinem Konto" icon={<PackageCheck />} />
-                    <DashboardMetric label="Reservierungen" value={activeReservations.length} detail="Aktiv vorgemerkt" icon={<CalendarCheck />} />
-                    <DashboardMetric label="Rückgaben" value={overdueCount} detail="Überfällig" icon={<RotateCcw />} tone={overdueCount > 0 ? "warning" : "default"} />
-                    <DashboardMetric label="Verfügbar" value={inventory.availableCount} detail="Einheiten im Inventar" icon={<ShieldCheck />} />
+                    <MetricCard label="Offene Ausleihen" value={myLoans.length} detail="Auf deinem Konto" icon={<PackageCheck />} />
+                    <MetricCard label="Reservierungen" value={activeReservations.length} detail="Aktiv vorgemerkt" icon={<CalendarCheck />} />
+                    <MetricCard label="Rückgaben" value={overdueCount} detail="Überfällig" icon={<RotateCcw />} warning={overdueCount > 0} />
+                    <MetricCard label="Verfügbar" value={inventory.availableCount} detail="Einheiten im Inventar" icon={<ShieldCheck />} />
                 </section>
 
                 <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
@@ -69,12 +70,3 @@ export default async function DashboardPage() {
     );
 }
 
-function DashboardMetric({ label, value, detail, icon, tone = "default" }: { label: string; value: number; detail: string; icon: React.ReactNode; tone?: "default" | "warning" }) {
-    return <Card className={tone === "warning" ? "border-destructive/30 bg-destructive/5" : undefined}>
-        <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
-            <div className="flex flex-col gap-1"><CardDescription>{label}</CardDescription><CardTitle className="text-3xl">{value}</CardTitle></div>
-            <span className="rounded-lg bg-muted p-2 text-primary">{icon}</span>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">{detail}</CardContent>
-    </Card>;
-}

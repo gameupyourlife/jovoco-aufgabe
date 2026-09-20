@@ -8,11 +8,13 @@ export default async function Layout({ children }: { children: React.ReactNode }
   const canManageUsers = await hasPermission({ user: ["list"] });
   const canManageLoanSettings = await hasPermission({ loan_settings: ["manage"] });
   const canManageInventory = await hasPermission({ inventory: ["update"] });
+  const canManageLoans = await hasPermission({ loan: ["read_all"] });
+  const canManageReservations = await hasPermission({ reservation: ["read_all"] });
   const canViewReports = await hasPermission({ report: ["read"] });
 
   return (
     <SidebarProvider>
-      <AppSidebar user={session.user} canManageUsers={canManageUsers} canManageLoanSettings={canManageLoanSettings} canManageInventory={canManageInventory} canViewReports={canViewReports} />
+      <AppSidebar user={session.user} canManageUsers={canManageUsers} canManageLoanSettings={canManageLoanSettings} canManageInventory={canManageInventory} canManageLoans={canManageLoans} canManageReservations={canManageReservations} canViewReports={canViewReports} />
       <main className="flex min-h-screen w-full flex-col bg-background font-sans text-foreground antialiased">
         {children}
       </main>

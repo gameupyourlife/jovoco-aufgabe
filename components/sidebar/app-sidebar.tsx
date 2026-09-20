@@ -16,9 +16,11 @@ type SidebarUser = {
   image?: string | null;
 };
 
-export function AppSidebar({ user, canManageUsers, canManageLoanSettings, canManageInventory, canViewReports, ...props }: React.ComponentProps<typeof Sidebar> & { user: SidebarUser; canManageUsers: boolean; canManageLoanSettings: boolean; canManageInventory: boolean; canViewReports: boolean }) {
+export function AppSidebar({ user, canManageUsers, canManageLoanSettings, canManageInventory, canManageLoans, canManageReservations, canViewReports, ...props }: React.ComponentProps<typeof Sidebar> & { user: SidebarUser; canManageUsers: boolean; canManageLoanSettings: boolean; canManageInventory: boolean; canManageLoans: boolean; canManageReservations: boolean; canViewReports: boolean }) {
   const items = [
     ...(canManageInventory ? [{ title: "Geräteverwaltung", url: "/device-management", icon: "manage" as const }] : []),
+    ...(canManageLoans ? [{ title: "Ausleihverwaltung", url: "/loan-management", icon: "inventory" as const }] : []),
+    ...(canManageReservations ? [{ title: "Reservierungsverwaltung", url: "/reservation-management", icon: "reservations" as const }] : []),
     ...(canViewReports ? [{ title: "Auswertungen", url: "/reports", icon: "reports" as const }] : []),
     ...(canManageLoanSettings ? [{ title: "Leihfristen", url: "/loan-settings", icon: "settings" as const }] : []),
     ...(canManageUsers ? [{ title: "Benutzer", url: "/users", icon: "users" as const }] : []),

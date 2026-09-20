@@ -118,6 +118,7 @@ export async function returnLoan(loanId: number): Promise<LoanActionResult> {
     }
 
     revalidatePath("/inventory");
+    revalidatePath("/reservations");
     return { success: true };
   } catch (error) {
     return { success: false, error: getActionError(error, "Rückgabe konnte nicht gespeichert werden.") };

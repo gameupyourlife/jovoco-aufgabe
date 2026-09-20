@@ -80,6 +80,7 @@ export function InventoryWorkspace({
 	users,
 	canCreateForOthers,
 	canReturnAll,
+	enableReservations = true,
 	adminMode = false,
 }: {
 	devices: Device[]
@@ -89,6 +90,7 @@ export function InventoryWorkspace({
 	users: ManagedUser[]
 	canCreateForOthers: boolean
 	canReturnAll: boolean
+	enableReservations?: boolean
 	adminMode?: boolean
 }) {
 	const router = useRouter()
@@ -310,7 +312,7 @@ export function InventoryWorkspace({
 											setExpanded(expanded === device.id ? null : device.id)
 										}
 										onCheckout={() => checkout(device.id)}
-										onReserve={() => setReservationDevice(device)}
+										onReserve={enableReservations ? () => setReservationDevice(device) : undefined}
 										onReturn={returnLoan}
 										pending={pending}
 										canReturnAll={canReturnAll}
@@ -323,7 +325,7 @@ export function InventoryWorkspace({
 					</CardContent>
 				</Card>
 			)}
-			<Dialog
+			{enableReservations && <Dialog
 				open={reservationDevice !== null}
 				onOpenChange={(open) => {
 					if (!open) setReservationDevice(null)
@@ -371,7 +373,7 @@ export function InventoryWorkspace({
 						</Button>
 					</DialogFooter>
 				</DialogContent>
-			</Dialog>
+			</Dialog>}
 		</div>
 	)
 }
@@ -392,7 +394,7 @@ function DeviceRow({
 	expanded: boolean
 	onToggle: () => void
 	onCheckout: () => void
-	onReserve: () => void
+	onReserve?: () => void
 	onReturn: (loanId: number) => void
 	pending: number | null
 	canReturnAll: boolean
@@ -437,7 +439,7 @@ function DeviceRow({
 				</TableCell>
 				<TableCell>
 					<div className="flex flex-wrap justify-end gap-2">
-						<Button
+						{onReserve && <Button
 							size="sm"
 							disabled={
 								Boolean(device.retiredAt) ||
@@ -449,7 +451,7 @@ function DeviceRow({
 						>
 							<CheckCircle2 data-icon="inline-start" />
 							Ausleihen
-						</Button>
+						</Button>}
 						<Button
 							variant="outline"
 							size="sm"

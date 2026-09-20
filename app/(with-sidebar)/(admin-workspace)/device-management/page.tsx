@@ -1,27 +1,18 @@
 import { CircleAlert } from "lucide-react";
 
 import { DeviceManagement } from "@/components/device-management";
-import { InventoryWorkspace } from "@/components/inventory-workspace";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { hasPermission, isAuthenticated } from "@/lib/auth/guard";
-import { getInventoryData } from "@/lib/data/inventory";
+import { isAuthenticated } from "@/lib/auth/guard";
 import { getManagedDevices } from "@/lib/data/device-management";
-import { getManagedUsers } from "@/lib/data/users";
 
 export const dynamic = "force-dynamic";
 
 export default async function DeviceManagementPage() {
-  const session = await isAuthenticated({ behavior: "forbidden", permissions: { inventory: ["update"] } });
+  await isAuthenticated({ behavior: "forbidden", permissions: { inventory: ["update"] } });
   try {
-    const [devices, inventory, canCreateForOthers, canReturnAll, managedUsers] = await Promise.all([
-      getManagedDevices(),
-      getInventoryData(),
-      hasPermission({ loan: ["create_for_others"] }),
-      hasPermission({ loan: ["return_all"] }),
-      getManagedUsers(),
-    ]);
+    const devices = await getManagedDevices();
     const activeDevices = devices.filter((device) => !device.retiredAt);
     const retiredDevices = devices.length - activeDevices.length;
     const totalUnits = activeDevices.reduce((total, device) => total + device.quantity, 0);
@@ -34,10 +25,6 @@ export default async function DeviceManagementPage() {
           <AdminMetric label="Ausgemustert" value={retiredDevices} detail="Für Historie archiviert" />
         </section>
         <DeviceManagement devices={devices} />
-        <section className="flex flex-col gap-3 border-t pt-8">
-          <div className="flex flex-col gap-1"><h2 className="font-heading text-2xl font-semibold tracking-tight">Ausleihe & Reservierung</h2><p className="text-muted-foreground">Geräte für andere Benutzer ausgeben, reservieren und Rückgaben verwalten.</p></div>
-          <InventoryWorkspace devices={inventory.devices} categories={inventory.categories} currentUserId={session.user.id} currentUserName={session.user.name} users={managedUsers} canCreateForOthers={canCreateForOthers} canReturnAll={canReturnAll} adminMode />
-        </section>
       </div>
     </main>;
   } catch {

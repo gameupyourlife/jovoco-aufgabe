@@ -8,6 +8,7 @@ const navMain = [
   { title: "Übersicht", url: "/", icon: "dashboard" },
   { title: "Inventar", url: "/inventory", icon: "inventory" },
   { title: "Importberichte", url: "/imports", icon: "imports" },
+  { title: "Benutzer", url: "/users", icon: "users" },
 ];
 
 type SidebarUser = {
@@ -16,11 +17,12 @@ type SidebarUser = {
   image?: string | null;
 };
 
-export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user: SidebarUser }) {
+export function AppSidebar({ user, canManageUsers, ...props }: React.ComponentProps<typeof Sidebar> & { user: SidebarUser; canManageUsers: boolean }) {
+  const items = canManageUsers ? [...navMain, { title: "Benutzer", url: "/users", icon: "users" }] : navMain;
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarContent>
-        <NavMain items={navMain} />
+        <NavMain items={items} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { auth, Session } from "../auth";
 
 
@@ -23,7 +23,7 @@ export class InsufficientPermissionsError extends Error {
     }
 }
 
-export type AuthBehavior = "null" | "redirect" | "error";
+export type AuthBehavior = "null" | "redirect" | "forbidden" | "error";
 
 /**
  * Options for authentication checking
@@ -66,7 +66,7 @@ export interface AuthOptions {
  * });
  */
 export async function isAuthenticated(): Promise<Session | null>;
-export async function isAuthenticated(options: AuthOptions & { behavior: "error" | "redirect" }): Promise<Session>;
+export async function isAuthenticated(options: AuthOptions & { behavior: "error" | "redirect" | "forbidden" }): Promise<Session>;
 export async function isAuthenticated(options: AuthOptions & { behavior?: "null" }): Promise<Session | null>;
 export async function isAuthenticated(options: AuthOptions = {}): Promise<Session | null> {
     const { behavior = "null", permissions } = options;
@@ -83,6 +83,9 @@ export async function isAuthenticated(options: AuthOptions = {}): Promise<Sessio
         }
         if (behavior === "redirect") {
             redirect("/login");
+        }
+        if (behavior === "forbidden") {
+            forbidden();
         }
         return null;
     }
@@ -103,9 +106,20 @@ export async function isAuthenticated(options: AuthOptions = {}): Promise<Sessio
             if (behavior === "redirect") {
                 redirect("/login?error=insufficient-permissions");
             }
+            if (behavior === "forbidden") {
+                forbidden();
+            }
             return null;
         }
     }
 
     return session;
+}
+
+export async function hasPermission(permissions: Record<string, string[]>): Promise<boolean> {
+    const requestHeaders = await headers();
+    return (await auth.api.userHasPermission({
+        headers: requestHeaders,
+        body: { permissions },
+    })).success;
 }

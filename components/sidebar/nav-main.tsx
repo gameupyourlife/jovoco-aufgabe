@@ -1,21 +1,22 @@
 "use client"
 
 import Link from "next/link"
-import { ClipboardList, LayoutDashboard, PackageSearch, type LucideIcon } from "lucide-react"
+import { ClipboardList, LayoutDashboard, PackageSearch, ShieldCheck, type LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 
 import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
 const icons: Record<string, LucideIcon> = {
   dashboard: LayoutDashboard,
   inventory: PackageSearch,
   imports: ClipboardList,
+  users: ShieldCheck,
 }
 
 export function NavMain({

@@ -1,4 +1,5 @@
 export * from "./auth-schema";
+import { user } from "./auth-schema";
 import { date, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const testTable = pgTable("test", {
@@ -44,6 +45,7 @@ export const loans = pgTable("loans", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   sourceKey: text("source_key").unique().notNull(),
   deviceId: integer("device_id").notNull().references(() => devices.id),
+  borrowerUserId: text("borrower_user_id").references(() => user.id, { onDelete: "set null" }),
   borrower: text().notNull(),
   borrowedAt: date("borrowed_at").notNull(),
   returnedAt: date("returned_at"),

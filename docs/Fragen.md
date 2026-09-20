@@ -1,0 +1,1 @@
+Welche bestehende Technik verwendet ihr um eure Mitarbeiter zu authentifzieren? Mircosoft? Welche Systeme sind da noch angebunden? Muss das neue System damit integriert werden?

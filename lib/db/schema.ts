@@ -1,6 +1,61 @@
 export * from "./auth-schema";
-import { integer, pgTable } from "drizzle-orm/pg-core";
+import { date, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const testTable = pgTable("test", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
+});
+
+export const legacyInventory = pgTable("alt_inventar", {
+  inventoryNumber: text("inventarnummer"),
+  name: text("bezeichnung"),
+  category: text("kategorie"),
+  quantity: text("menge"),
+  acquiredAt: text("angeschafft_am"),
+});
+
+export const legacyLoans = pgTable("alt_ausleihen", {
+  inventoryNumber: text("inventarnummer"),
+  borrower: text("ausgeliehen_von"),
+  borrowedAt: text("ausgeliehen_am"),
+  returnedAt: text("zurueckgegeben_am"),
+});
+
+export const importRuns = pgTable("import_runs", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  sourceFile: text("source_file").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  importedCount: integer("imported_count").default(0).notNull(),
+  warningCount: integer("warning_count").default(0).notNull(),
+  rejectedCount: integer("rejected_count").default(0).notNull(),
+});
+
+export const devices = pgTable("devices", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  sourceKey: text("source_key").unique().notNull(),
+  inventoryNumber: text("inventory_number").notNull().unique(),
+  name: text().notNull(),
+  category: text().notNull(),
+  quantity: integer().notNull(),
+  acquiredAt: date("acquired_at").notNull(),
+});
+
+export const loans = pgTable("loans", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  sourceKey: text("source_key").unique().notNull(),
+  deviceId: integer("device_id").notNull().references(() => devices.id),
+  borrower: text().notNull(),
+  borrowedAt: date("borrowed_at").notNull(),
+  returnedAt: date("returned_at"),
+});
+
+export const importRows = pgTable("import_rows", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  runId: integer("run_id").notNull().references(() => importRuns.id, { onDelete: "cascade" }),
+  sourceTable: text("source_table").notNull(),
+  sourceRow: integer("source_row").notNull(),
+  sourceKey: text("source_key").notNull(),
+  status: text().notNull(),
+  message: text().notNull(),
+  rawData: jsonb("raw_data").notNull(),
 });

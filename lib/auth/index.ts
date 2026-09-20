@@ -11,7 +11,10 @@ export const auth = betterAuth({
     }),
     plugins: [
         admin()
-    ]
+    ],
+    emailAndPassword: {
+        enabled: true,
+    },
 });
 
 export type Session = typeof auth.$Infer.Session;

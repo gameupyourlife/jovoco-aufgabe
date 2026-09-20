@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { auth, Session } from "../auth";
 
 
@@ -80,6 +81,9 @@ export async function isAuthenticated(options: AuthOptions = {}): Promise<Sessio
         if (behavior === "error") {
             throw new UnauthenticatedError();
         }
+        if (behavior === "redirect") {
+            redirect("/login");
+        }
         return null;
     }
 
@@ -95,6 +99,9 @@ export async function isAuthenticated(options: AuthOptions = {}): Promise<Sessio
         if (!hasRequiredPermissions) {
             if (behavior === "error") {
                 throw new InsufficientPermissionsError();
+            }
+            if (behavior === "redirect") {
+                redirect("/login?error=insufficient-permissions");
             }
             return null;
         }

@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/table";
 import { db } from "@/lib/db";
 import { importRows, importRuns } from "@/lib/db/schema";
+import { isAuthenticated } from "@/lib/auth/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,7 @@ type PageProps = {
 };
 
 export default async function Page({ searchParams }: PageProps) {
+  await isAuthenticated({ behavior: "redirect" });
   try {
     const params = await searchParams;
     const runs = await db.select().from(importRuns).orderBy(desc(importRuns.startedAt));

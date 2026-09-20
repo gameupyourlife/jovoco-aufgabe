@@ -41,6 +41,12 @@ Voraussetzungen: Node.js, eine erreichbare PostgreSQL-Datenbank und npm.
    npm run dev
    ```
 
+   Bzw production Server:
+   ```bash
+   npm run build
+   npm run start
+   ```
+
 Danach ist die Anwendung unter `http://localhost:3000/login` erreichbar. Konten können auf der Login-Seite angelegt werden. Das erste Konto erhält nicht automatisch Admin-Rechte; die Rolle muss über die Better-Auth-Benutzerverwaltung gesetzt werden.
 
 Verfügbare Prüfungen:
